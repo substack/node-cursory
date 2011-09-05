@@ -28,12 +28,12 @@ module.exports = function (stream, width) {
         else if (last === 'C') {
             var s = buf.slice(0, buf.length - 1).toString();
             pos.x += parseInt(s, 10) || 1;
-            emit();
+            xcheck() || emit();
         }
         else if (last === 'D') {
             var s = buf.slice(0, buf.length - 1).toString();
             pos.x -= parseInt(s, 10) || 1;
-            emit();
+            xcheck() || emit();
         }
     }
     
@@ -59,64 +59,69 @@ module.exports = function (stream, width) {
         };
     })();
     
-    binary(stream).loop(function (end) {
+    binary(stream).tap(function parse () {
         this
             .word8('c')
             .tap(function (vars) {
-                if (vars.c === '\n'.charCodeAt(0)) {
+                var c = vars.c;
+                if (c === '\n'.charCodeAt(0)) {
                     pos.y ++;
                     pos.x = 0;
                     emit();
+                    parse.call(this);
                 }
-                else if (vars.c === '\r'.charCodeAt(0)) {
+                else if (c === '\r'.charCodeAt(0)) {
                     pos.x = 0;
                     emit();
+                    parse.call(this);
                 }
-                else if (vars.c === '\f'.charCodeAt(0)) {
+                else if (c === '\f'.charCodeAt(0)) {
                     pos.y ++;
                     emit();
+                    parse.call(this);
                 }
-                else if (vars.c === 0x1b) { // escape
+                else if (c === 0x1b) { // escape
                     this
                         .word8('x')
                         .tap(function (vars) {
-                            if (vars.x === '['.charCodeAt(0)) {
-                                this
-                                    .loop(nextAlpha('values'))
-                                    .word8('__hack')
-                                    .tap(function (vars) {
-                                        decode(vars.values);
-                                    })
-                                ;
+                            var x = String.fromCharCode(vars.x);
+                            if (x === '[') {
+                                this.tap(nextAlpha(function () {
+                                    parse.call(this);
+                                }));
                             }
-                            else if (vars.x === '('.charCodeAt(0)
-                            || vars.x === ')'.charCodeAt(0)
-                            || vars.x === 'c'
-                            ) { /* nop */ }
-                            else if (vars.x === '7'.charCodeAt(0)) {
+                            else if (x === '(' || x === ')' || x === 'c') {
+                                parse.call(this);
+                            }
+                            else if (x === '7') {
                                 stack.push({ x : pos.x, y : pos.y });
+                                parse.call(this);
                             }
-                            else if (vars.x === '8'.charCodeAt(0)) {
+                            else if (x === '8') {
                                 var p = stack.pop();
                                 pos.x = p.x;
                                 pos.y = p.y;
                                 emit();
+                                parse.call(this);
                             }
-                            else if (vars.x === 'D'.charCodeAt(0)) {
+                            else if (x === 'D') {
                                 // scroll down
                                 pos.x = 0;
                                 pos.y ++;
                                 emit();
+                                parse.call(this);
                             }
-                            else if (vars.x === 'M'.charCodeAt(0)) {
+                            else if (x === 'M') {
                                 // scroll up
                                 pos.x = 0;
                                 pos.y --;
                                 emit();
+                                parse.call(this);
                             }
                             else {
                                 pos.x += 2;
                                 xcheck() || emit();
+                                parse.call(this);
                             }
                         })
                     ;
@@ -124,27 +129,28 @@ module.exports = function (stream, width) {
                 else {
                     pos.x ++;
                     xcheck() || emit();
+                    parse.call(this);
                 }
             })
         ;
     });
     
-    function nextAlpha (name) {
+    function nextAlpha (cb) {
         var values = [];
-        
-        return function (end) {
+        return function alpha () {
             this
                 .word8('__nextChar')
                 .tap(function (vars) {
                     var c = vars.__nextChar;
                     values.push(c);
                     if (String.fromCharCode(c).match(/[A-Za-z]/)) {
-                        vars[name] = new Buffer(values);
-                        end();
+                        decode(new Buffer(values))
+                        cb.call(this);
                     }
+                    else alpha.call(this);
                 })
             ;
-        }
+        };
     }
     
     var pos = new EventEmitter;
