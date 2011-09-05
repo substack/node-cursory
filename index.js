@@ -3,7 +3,16 @@ var EventEmitter = require('events').EventEmitter;
 
 module.exports = function (stream, width) {
     function decode (buf) {
-        // console.dir(buf);
+        console.dir(buf);
+    }
+    
+    function xcheck () {
+        if (width && pos.x >= width) {
+            pos.y += Math.floor(pos.x / width);
+            pos.x %= width;
+            emit();
+            return true;
+        }
     }
     
     var emit = (function () {
@@ -49,18 +58,39 @@ module.exports = function (stream, width) {
                                     })
                                 ;
                             }
-                            else throw new Error('meep')
+                            else if (vars.x === '('.charCodeAt(0)
+                            || vars.x === ')'.charCodeAt(0)
+                            || vars.x === 'c'
+                            ) { /* nop */ }
+                            else if (vars.x === '7'.charCodeAt(0)) {
+                                stack.push(pos);
+                            }
+                            else if (vars.x === '8'.charCodeAt(0)) {
+                                pos = stack.pop();
+                                emit();
+                            }
+                            else if (vars.x === 'D'.charCodeAt(0)) {
+                                // scroll down
+                                pos.x = 0;
+                                pos.y ++;
+                                emit();
+                            }
+                            else if (vars.x === 'M'.charCodeAt(0)) {
+                                // scroll up
+                                pos.x = 0;
+                                pos.y --;
+                                emit();
+                            }
+                            else {
+                                pos.x += 2;
+                                xcheck() || emit();
+                            }
                         })
                     ;
                 }
                 else {
                     pos.x ++;
-                    if (width && pos.x >= width) {
-                        pos.y += Math.floor(pos.x / width);
-                        pos.x %= width;
-                    }
-                    
-                    emit();
+                    xcheck() || emit();
                 }
             })
         ;
