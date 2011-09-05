@@ -21,13 +21,21 @@ test('lines', function (t) {
         .seq(function () {
             t.equal(pos.x, 0);
             t.equal(pos.y, 1);
-            stream.emit('data', new Buffer('defh\fhi'));
+            stream.emit('data', new Buffer('defg\fhi'));
             this();
         })
         .seq(function () { pos.once('pos', this.ok) })
         .seq(function () { setTimeout(this.ok, 10) })
         .seq(function () {
             t.equal(pos.x, 6);
+            t.equal(pos.y, 2);
+            stream.emit('data', new Buffer('jk\rl'));
+            this();
+        })
+        .seq(function () { pos.once('pos', this.ok) })
+        .seq(function () { setTimeout(this.ok, 10) })
+        .seq(function () {
+            t.equal(pos.x, 1);
             t.equal(pos.y, 2);
             stream.emit('end');
             t.end();
