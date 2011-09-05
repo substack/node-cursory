@@ -1,0 +1,39 @@
+{
+    "name" : "cursory",
+    "version" : "0.0.0",
+    "description" : "compute the relative cursor position on a terminal stream",
+    "main" : "index.js",
+    "directories" : {
+        "lib" : ".",
+        "example" : "example",
+        "test" : "test"
+    },
+    "dependencies" : {
+        "binary" : ">=0.2.5 <0.3"
+    },
+    "devDependencies" : {
+        "tap" : "0.0.x"
+    },
+    "scripts" : {
+        "test" : "tap test"
+    },
+    "repository" : {
+        "type" : "git",
+        "url" : "http://github.com/substack/node-cursory.git"
+    },
+    "keywords" : [
+        "terminal",
+        "ansi",
+        "cursor",
+        "console",
+        "escape",
+        "sequence"
+    ],
+    "author" : {
+        "name" : "James Halliday",
+        "email" : "mail@substack.net",
+        "url" : "http://substack.net"
+    },
+    "license" : "MIT/X11",
+    "engine" : { "node" : ">=0.4" }
+}
