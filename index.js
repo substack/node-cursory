@@ -2,7 +2,19 @@ var binary = require('binary');
 var EventEmitter = require('events').EventEmitter;
 
 module.exports = function (stream, width) {
+    var stack = [];
+    
     function decode (buf) {
+        if (buf.length === 1) {
+            if (buf[0] === 's'.charCodeAt(0)) {
+                stack.push({ x : pos.x, y : pos.y });
+            }
+            else if (buf[0] === 'u'.charCodeAt(0)) {
+                var p = stack.pop();
+                pos.x = p.x;
+                pos.y = p.y;
+            }
+        }
         console.dir(buf);
     }
     
@@ -63,10 +75,12 @@ module.exports = function (stream, width) {
                             || vars.x === 'c'
                             ) { /* nop */ }
                             else if (vars.x === '7'.charCodeAt(0)) {
-                                stack.push(pos);
+                                stack.push({ x : pos.x, y : pos.y });
                             }
                             else if (vars.x === '8'.charCodeAt(0)) {
-                                pos = stack.pop();
+                                var p = stack.pop();
+                                pos.x = p.x;
+                                pos.y = p.y;
                                 emit();
                             }
                             else if (vars.x === 'D'.charCodeAt(0)) {
