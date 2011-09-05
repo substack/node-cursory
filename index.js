@@ -3,7 +3,7 @@ var EventEmitter = require('events').EventEmitter;
 
 module.exports = function (stream, width) {
     function decode (buf) {
-        console.dir(buf);
+        // console.dir(buf);
     }
     
     var emit = (function () {
@@ -41,10 +41,15 @@ module.exports = function (stream, width) {
                         .word8('x')
                         .tap(function (vars) {
                             if (vars.x === '['.charCodeAt(0)) {
-                                this.loop(nextAlpha('values')).tap(function (vars) {
-                                    decode(vars.values);
-                                });
+                                this
+                                    .loop(nextAlpha('values'))
+                                    .word8('__hack')
+                                    .tap(function (vars) {
+                                        decode(vars.values);
+                                    })
+                                ;
                             }
+                            else throw new Error('meep')
                         })
                     ;
                 }
@@ -66,7 +71,7 @@ module.exports = function (stream, width) {
         
         return function (end) {
             this
-                .get('__nextChar')
+                .word8('__nextChar')
                 .tap(function (vars) {
                     var c = vars.__nextChar;
                     values.push(c);

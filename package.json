@@ -9,7 +9,8 @@
         "test" : "test"
     },
     "dependencies" : {
-        "binary" : ">=0.2.5 <0.3"
+        "binary" : "0.2.5",
+        "charm" : "0.0.x"
     },
     "devDependencies" : {
         "tap" : "0.0.x"
