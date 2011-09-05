@@ -2,8 +2,6 @@ var binary = require('binary');
 var EventEmitter = require('events').EventEmitter;
 
 module.exports = function (stream, width) {
-    if (width === undefined) width = 80;
-    
     function decode (buf) {
         console.dir(buf);
     }
@@ -52,6 +50,11 @@ module.exports = function (stream, width) {
                 }
                 else {
                     pos.x ++;
+                    if (width && pos.x >= width) {
+                        pos.y += Math.floor(pos.x / width);
+                        pos.x %= width;
+                    }
+                    
                     emit();
                 }
             })
