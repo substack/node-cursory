@@ -5,17 +5,36 @@ module.exports = function (stream, width) {
     var stack = [];
     
     function decode (buf) {
-        if (buf.length === 1) {
-            if (buf[0] === 's'.charCodeAt(0)) {
-                stack.push({ x : pos.x, y : pos.y });
-            }
-            else if (buf[0] === 'u'.charCodeAt(0)) {
-                var p = stack.pop();
-                pos.x = p.x;
-                pos.y = p.y;
-            }
+        var last = String.fromCharCode(buf[buf.length - 1]);
+        if (last === 's') {
+            stack.push({ x : pos.x, y : pos.y });
         }
-        console.dir(buf);
+        else if (last === 'u') {
+            var p = stack.pop();
+            pos.x = p.x;
+            pos.y = p.y;
+            emit();
+        }
+        else if (last === 'A') {
+            var s = buf.slice(0, buf.length - 1).toString();
+            pos.y -= parseInt(s, 10) || 1;
+            emit();
+        }
+        else if (last === 'B') {
+            var s = buf.slice(0, buf.length - 1).toString();
+            pos.y += parseInt(s, 10) || 1;
+            emit();
+        }
+        else if (last === 'C') {
+            var s = buf.slice(0, buf.length - 1).toString();
+            pos.x += parseInt(s, 10) || 1;
+            emit();
+        }
+        else if (last === 'D') {
+            var s = buf.slice(0, buf.length - 1).toString();
+            pos.x -= parseInt(s, 10) || 1;
+            emit();
+        }
     }
     
     function xcheck () {
