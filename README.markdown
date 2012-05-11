@@ -3,6 +3,8 @@ cursory
 
 Compute the relative cursor position from a stream that emits ansi events.
 
+[![build status](https://secure.travis-ci.org/substack/node-cursory.png)](http://travis-ci.org/substack/node-cursory)
+
 status
 ======
 
