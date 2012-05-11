@@ -13,8 +13,9 @@ test('scroll', function (t) {
         .seq(function () { pos.once('pos', this.ok) })
         .seq(function () { setTimeout(this.ok, 50) })
         .seq(function () {
-            t.equal(pos.x, 13);
-            t.equal(pos.y, 0);
+            //         abcde*
+            t.equal(pos.x, 14);
+            t.equal(pos.y, 1);
             this();
         })
         .seq(function () {
@@ -23,8 +24,12 @@ test('scroll', function (t) {
         })
         .seq(function () { setTimeout(this.ok, 50) })
         .seq(function () {
-            t.equal(pos.x, 13);
-            t.equal(pos.y, 3);
+            //         abcde
+            //              
+            //              
+            //              *
+            t.equal(pos.x, 14);
+            t.equal(pos.y, 4);
             this();
         })
         .seq(function () {
@@ -33,8 +38,10 @@ test('scroll', function (t) {
         })
         .seq(function () { setTimeout(this.ok, 50) })
         .seq(function () {
-            t.equal(pos.x, 10);
-            t.equal(pos.y, 1);
+            //         abcde
+            //           *   
+            t.equal(pos.x, 11);
+            t.equal(pos.y, 2);
             charm.end();
             t.end();
         })
