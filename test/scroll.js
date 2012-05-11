@@ -5,16 +5,8 @@ var seq = require('seq');
 var charmer = require('charm');
 
 test('scroll', function (t) {
-    var stream = new EventEmitter;
-    stream.write = function (buf) {
-        this.emit('data', buf);
-    };
-    
-    stream.readable = true;
-    stream.writable = true;
-    
-    var charm = charmer(stream);
-    var pos = cursory(stream);
+    var charm = charmer();
+    var pos = cursory(charm);
     
     seq()
         .seq(function () { pos.once('pos', this.ok) })
@@ -42,7 +34,7 @@ test('scroll', function (t) {
         .seq(function () {
             t.equal(pos.x, 10);
             t.equal(pos.y, 1);
-            stream.emit('end');
+            charm.end();
             t.end();
         })
     ;

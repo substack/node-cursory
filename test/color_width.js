@@ -5,16 +5,8 @@ var seq = require('seq');
 var charmer = require('charm');
 
 test('color width', function (t) {
-    var stream = new EventEmitter;
-    stream.write = function (buf) {
-        this.emit('data', buf);
-    };
-    
-    stream.readable = true;
-    stream.writable = true;
-    
-    var charm = charmer(stream);
-    var pos = cursory(stream, 10);
+    var charm = charmer();
+    var pos = cursory(charm, 10);
     
     seq()
         .seq(function () { pos.once('pos', this.ok) })
@@ -44,7 +36,7 @@ test('color width', function (t) {
         .seq(function () {
             t.equal(pos.x, 4);
             t.equal(pos.y, 1);
-            stream.emit('end');
+            charm.end();
             t.end();
         })
     ;

@@ -12,9 +12,9 @@
         "binary" : "0.2.5"
     },
     "devDependencies" : {
-        "tap" : "0.0.x",
+        "tap" : "~0.2.4",
         "seq" : "0.3.x",
-        "charm" : "0.0.x"
+        "charm" : "~0.1.0"
     },
     "scripts" : {
         "test" : "tap test"
