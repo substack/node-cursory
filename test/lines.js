@@ -12,7 +12,9 @@ test('lines', function (t) {
         .seq(function () {
             t.equal(pos.x, 3);
             t.equal(pos.y, 0);
-            pos.write(new Buffer('\n'));
+            process.nextTick(function () {
+                pos.write(new Buffer('\n'));
+            });
             this();
         })
         .seq(function () { pos.once('pos', this.ok) })

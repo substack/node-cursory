@@ -110,14 +110,8 @@ module.exports = function (opts) {
     var emit = (function () {
         var nt = false;
         return function (buf) {
-            if (nt === false) {
-                nt = true;
-                pos.emit('data', buf);
-                process.nextTick(function () {
-                    nt = false;
-                    pos.emit('pos', pos.x, pos.y);
-                });
-            }
+            pos.emit('data', buf);
+            pos.emit('pos', pos.x, pos.y);
         };
     })();
     
