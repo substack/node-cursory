@@ -1,8 +1,25 @@
 var binary = require('binary');
 var EventEmitter = require('events').EventEmitter;
+var Stream = require('stream').Stream;
 
-module.exports = function (stream, width) {
+module.exports = function (width) {
     var stack = [];
+    var pos = new Stream;
+    pos.writable = true;
+    
+    pos.x = 0;
+    pos.y = 0;
+    
+    var stream = new Stream;
+    stream.readable = true;
+    
+    pos.write = function (buf) {
+        stream.emit('data', buf);
+    };
+    
+    pos.end = function () {
+        stream.emit('end');
+    };
     
     function decode (buf) {
         var last = String.fromCharCode(buf[buf.length - 1]);
@@ -153,8 +170,5 @@ module.exports = function (stream, width) {
         };
     }
     
-    var pos = new EventEmitter;
-    pos.x = 0;
-    pos.y = 0;
     return pos;
 };

@@ -6,7 +6,8 @@ var charmer = require('charm');
 
 test('scroll', function (t) {
     var charm = charmer();
-    var pos = cursory(charm);
+    var pos = cursory();
+    charm.pipe(pos);
     
     seq()
         .seq(function () { pos.once('pos', this.ok) })

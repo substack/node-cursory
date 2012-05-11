@@ -6,7 +6,8 @@ var charmer = require('charm');
 
 test('color width', function (t) {
     var charm = charmer();
-    var pos = cursory(charm, 10);
+    var pos = cursory(10);
+    charm.pipe(pos);
     
     seq()
         .seq(function () { pos.once('pos', this.ok) })
