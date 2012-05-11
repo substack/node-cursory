@@ -16,16 +16,9 @@ module.exports = function (opts) {
     pos.x = opts.x || 0;
     pos.y = opts.y || 0;
     
-    var stream = new Stream;
-    stream.readable = true;
-    
-    pos.write = function (buf) {
-        stream.emit('data', buf);
-    };
-    
-    pos.end = function () {
-        stream.emit('end');
-    };
+    var b = binary();
+    pos.write = b.write.bind(b);
+    pos.end = b.end.bind(b);
     
     function decode (buf) {
         var last = String.fromCharCode(buf[buf.length - 1]);
@@ -116,80 +109,79 @@ module.exports = function (opts) {
         };
     })();
     
-    binary(stream).tap(function parse () {
+    b.tap(function parse () {
         this
-            .word8('c')
-            .tap(function (vars) {
-                var c = vars.c;
-                if (c === '\n'.charCodeAt(0)) {
-                    pos.y ++;
-                    pos.x = 0;
-                    emit();
-                    parse.call(this);
-                }
-                else if (c === '\r'.charCodeAt(0)) {
-                    pos.x = 0;
-                    emit();
-                    parse.call(this);
-                }
-                else if (c === '\f'.charCodeAt(0)) {
-                    pos.y ++;
-                    emit();
-                    parse.call(this);
-                }
-                else if (c === 0x1b) { // escape
-                    this
-                        .word8('x')
-                        .tap(function (vars) {
-                            var x = String.fromCharCode(vars.x);
-                            if (x === '[') {
-                                this.tap(nextAlpha(function () {
-                                    parse.call(this);
-                                }));
-                            }
-                            else if (x === '(' || x === ')' || x === 'c') {
+        .word8('c')
+        .tap(function (vars) {
+            var c = vars.c;
+            if (c === '\n'.charCodeAt(0)) {
+                pos.y ++;
+                pos.x = 0;
+                emit();
+                parse.call(this);
+            }
+            else if (c === '\r'.charCodeAt(0)) {
+                pos.x = 0;
+                emit();
+                parse.call(this);
+            }
+            else if (c === '\f'.charCodeAt(0)) {
+                pos.y ++;
+                emit();
+                parse.call(this);
+            }
+            else if (c === 0x1b) { // escape
+                this
+                    .word8('x')
+                    .tap(function (vars) {
+                        var x = String.fromCharCode(vars.x);
+                        if (x === '[') {
+                            this.tap(nextAlpha(function () {
                                 parse.call(this);
-                            }
-                            else if (x === '7') {
-                                stack.push({ x : pos.x, y : pos.y });
-                                parse.call(this);
-                            }
-                            else if (x === '8') {
-                                var p = stack.pop();
-                                pos.x = p.x;
-                                pos.y = p.y;
-                                emit();
-                                parse.call(this);
-                            }
-                            else if (x === 'D') {
-                                // scroll down
-                                pos.x = 0;
-                                pos.y ++;
-                                emit();
-                                parse.call(this);
-                            }
-                            else if (x === 'M') {
-                                // scroll up
-                                pos.x = 0;
-                                pos.y --;
-                                emit();
-                                parse.call(this);
-                            }
-                            else {
-                                pos.x += 2;
-                                xcheck() || emit();
-                                parse.call(this);
-                            }
-                        })
-                    ;
-                }
-                else {
-                    pos.x ++;
-                    xcheck() || emit();
-                    parse.call(this);
-                }
-            })
-        ;
+                            }));
+                        }
+                        else if (x === '(' || x === ')' || x === 'c') {
+                            parse.call(this);
+                        }
+                        else if (x === '7') {
+                            stack.push({ x : pos.x, y : pos.y });
+                            parse.call(this);
+                        }
+                        else if (x === '8') {
+                            var p = stack.pop();
+                            pos.x = p.x;
+                            pos.y = p.y;
+                            emit();
+                            parse.call(this);
+                        }
+                        else if (x === 'D') {
+                            // scroll down
+                            pos.x = 0;
+                            pos.y ++;
+                            emit();
+                            parse.call(this);
+                        }
+                        else if (x === 'M') {
+                            // scroll up
+                            pos.x = 0;
+                            pos.y --;
+                            emit();
+                            parse.call(this);
+                        }
+                        else {
+                            pos.x += 2;
+                            xcheck() || emit();
+                            parse.call(this);
+                        }
+                    })
+                ;
+            }
+            else {
+                pos.x ++;
+                xcheck() || emit();
+                parse.call(this);
+            }
+        })
     });
     
     function nextAlpha (cb) {
