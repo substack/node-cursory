@@ -15,12 +15,13 @@ methods
 var cursory = require('cursory');
 ````
 
-var pos = cursory(stream, width)
---------------------------------
+var pos = cursory(width)
+------------------------
 
-Create a new cursor position `pos` from a stream and optionally a window width.
+Return a new writable stream `pos` from an optional window width.
 
-The `stream` should emit 'data' events with binary `Buffer` payloads. 
+`pos` has attributes that update and events that fire as the screen position
+state of the input stream changes.
 
 attributes
 ==========
@@ -46,4 +47,11 @@ Emitted when the cursor position updates.
 install
 =======
 
-    npm install cursory
+```
+npm install cursory
+```
+
+license
+=======
+
+MIT

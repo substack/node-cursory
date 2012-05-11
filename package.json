@@ -1,6 +1,6 @@
 {
     "name" : "cursory",
-    "version" : "0.0.0",
+    "version" : "0.1.0",
     "description" : "compute the relative cursor position on a terminal stream",
     "main" : "index.js",
     "directories" : {
@@ -9,7 +9,7 @@
         "test" : "test"
     },
     "dependencies" : {
-        "binary" : "0.2.5"
+        "binary" : "~0.2.6"
     },
     "devDependencies" : {
         "tap" : "~0.2.4",
@@ -36,6 +36,6 @@
         "email" : "mail@substack.net",
         "url" : "http://substack.net"
     },
-    "license" : "MIT/X11",
+    "license" : "MIT",
     "engine" : { "node" : ">=0.4" }
 }
