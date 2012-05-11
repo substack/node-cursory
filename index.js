@@ -12,78 +12,91 @@ module.exports = function (opts) {
     var stack = [];
     var pos = new Stream;
     pos.writable = true;
+    pos.readable = true;
     
     pos.x = opts.x || 0;
     pos.y = opts.y || 0;
     
-    var b = binary();
-    pos.write = b.write.bind(b);
-    pos.end = b.end.bind(b);
+    var bin = binary();
+    pos.write = bin.write.bind(bin);
+    pos.end = bin.end.bind(bin);
     
     function decode (buf) {
         var last = String.fromCharCode(buf[buf.length - 1]);
         
         var handler = {
-            s : function (s) {
+            s : function (s, b) {
                 // push stack without attributes
                 stack.push({ x : pos.x, y : pos.y });
             },
-            u : function (s) {
+            u : function (s, b) {
                 // pop stack without attributes
                 var p = stack.pop();
                 pos.x = p.x;
                 pos.y = p.y;
-                emit();
+                emit(b);
             },
-            A : function (s) {
+            A : function (s, b) {
                 // relative up
                 pos.y -= parseInt(s, 10) || 1;
-                emit();
+                emit(b);
             },
-            B : function (s) {
+            B : function (s, b) {
                 // relative down
                 pos.y += parseInt(s, 10) || 1;
-                emit();
+                emit(b);
             },
-            C : function (s) {
+            C : function (s, b) {
                 // relative right
                 pos.x += parseInt(s, 10) || 1;
-                xcheck() || emit();
+                xcheck();
+                emit(b);
             },
-            D : function (s) {
+            D : function (s, b) {
                 // relative left
                 pos.x -= parseInt(s, 10) || 1;
-                xcheck() || emit();
+                xcheck();
+                emit(b);
             },
-            E : function (s) {
+            E : function (s, b) {
                 // begining of the line N lines down
                 pos.x = 1;
                 pos.y += parseInt(s, 10) || 1;
-                emit();
+                emit(b);
             },
-            F : function (s) {
+            F : function (s, b) {
                 // begining of the line N lines up
                 pos.x = 1;
                 pos.y -= parseInt(s, 10) || 1;
-                emit();
+                emit(b);
             },
-            G : function (s) {
+            G : function (s, b) {
                 // absolute column
                 pos.x = parseInt(s, 10) || 1;
-                xcheck() || emit();
+                xcheck();
+                emit(b);
             },
-            H : function (s) {
+            H : function (s, b) {
                 // absolute x,y
                 var xy = s.split(';');
                 pos.x = parseInt(xy[0], 10) || 1;
                 pos.y = parseInt(xy[1], 10) || 1;
-                xcheck() || emit();
+                xcheck();
+                emit(b);
+            },
+            f : function (s, b) {
+                // absolute x,y
+                var xy = s.split(';');
+                pos.x = parseInt(xy[0], 10) || 1;
+                pos.y = parseInt(xy[1], 10) || 1;
+                xcheck();
+                emit(b);
             },
         }[last];
         
         if (handler) {
-            var s = buf.slice(0, buf.length - 1).toString();
-            handler(s);
+            var b = buf.slice(0, buf.length - 1);
+            handler(b.toString(), b);
         }
     }
     
@@ -91,16 +104,15 @@ module.exports = function (opts) {
         if (width && pos.x >= width) {
             pos.y += Math.floor(pos.x / width);
             pos.x %= width;
-            emit();
-            return true;
         }
     }
     
     var emit = (function () {
         var nt = false;
-        return function () {
+        return function (buf) {
             if (nt === false) {
                 nt = true;
+                pos.emit('data', buf);
                 process.nextTick(function () {
                     nt = false;
                     pos.emit('pos', pos.x, pos.y);
@@ -109,25 +121,26 @@ module.exports = function (opts) {
         };
     })();
     
-    b.tap(function parse () {
+    bin.tap(function parse () {
         this
         .word8('c')
         .tap(function (vars) {
             var c = vars.c;
+            var b = new Buffer([vars.c]);
             if (c === '\n'.charCodeAt(0)) {
                 pos.y ++;
                 pos.x = 0;
-                emit();
+                emit(b);
                 parse.call(this);
             }
             else if (c === '\r'.charCodeAt(0)) {
                 pos.x = 0;
-                emit();
+                emit(b);
                 parse.call(this);
             }
             else if (c === '\f'.charCodeAt(0)) {
                 pos.y ++;
-                emit();
+                emit(b);
                 parse.call(this);
             }
             else if (c === 0x1b) { // escape
@@ -151,26 +164,26 @@ module.exports = function (opts) {
                             var p = stack.pop();
                             pos.x = p.x;
                             pos.y = p.y;
-                            emit();
+                            emit(b);
                             parse.call(this);
                         }
                         else if (x === 'D') {
                             // scroll down
                             pos.x = 0;
                             pos.y ++;
-                            emit();
+                            emit(b);
                             parse.call(this);
                         }
                         else if (x === 'M') {
                             // scroll up
                             pos.x = 0;
                             pos.y --;
-                            emit();
+                            emit(b);
                             parse.call(this);
                         }
                         else {
                             pos.x += 2;
-                            xcheck() || emit();
+                            xcheck() || emit(b);
                             parse.call(this);
                         }
                     })
@@ -178,7 +191,7 @@ module.exports = function (opts) {
             }
             else {
                 pos.x ++;
-                xcheck() || emit();
+                xcheck() || emit(b);
                 parse.call(this);
             }
         })
