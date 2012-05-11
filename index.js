@@ -76,8 +76,14 @@ module.exports = function (opts) {
             },
             G : function (s) {
                 // absolute column
-                var s = buf.slice(0, buf.length - 1).toString();
                 pos.x = parseInt(s, 10) || 1;
+                xcheck() || emit();
+            },
+            H : function (s) {
+                // absolute x,y
+                var xy = s.split(';');
+                pos.x = parseInt(xy[0], 10) || 1;
+                pos.y = parseInt(xy[1], 10) || 1;
                 xcheck() || emit();
             },
         }[last];
@@ -195,7 +201,7 @@ module.exports = function (opts) {
                     var c = vars.__nextChar;
                     values.push(c);
                     if (String.fromCharCode(c).match(/[A-Za-z]/)) {
-                        decode(new Buffer(values))
+                        decode(new Buffer(values));
                         cb.call(this);
                     }
                     else alpha.call(this);
