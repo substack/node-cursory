@@ -2,13 +2,19 @@ var binary = require('binary');
 var EventEmitter = require('events').EventEmitter;
 var Stream = require('stream').Stream;
 
-module.exports = function (width) {
+module.exports = function (opts) {
+    if (opts === undefined) opts = {};
+    if (typeof opts === 'number') {
+        opts = { width : opts };
+    }
+    var width = opts.width;
+    
     var stack = [];
     var pos = new Stream;
     pos.writable = true;
     
-    pos.x = 0;
-    pos.y = 0;
+    pos.x = opts.x || 0;
+    pos.y = opts.y || 0;
     
     var stream = new Stream;
     stream.readable = true;
@@ -23,34 +29,62 @@ module.exports = function (width) {
     
     function decode (buf) {
         var last = String.fromCharCode(buf[buf.length - 1]);
-        if (last === 's') {
-            stack.push({ x : pos.x, y : pos.y });
-        }
-        else if (last === 'u') {
-            var p = stack.pop();
-            pos.x = p.x;
-            pos.y = p.y;
-            emit();
-        }
-        else if (last === 'A') {
+        
+        var handler = {
+            s : function (s) {
+                // push stack without attributes
+                stack.push({ x : pos.x, y : pos.y });
+            },
+            u : function (s) {
+                // pop stack without attributes
+                var p = stack.pop();
+                pos.x = p.x;
+                pos.y = p.y;
+                emit();
+            },
+            A : function (s) {
+                // relative up
+                pos.y -= parseInt(s, 10) || 1;
+                emit();
+            },
+            B : function (s) {
+                // relative down
+                pos.y += parseInt(s, 10) || 1;
+                emit();
+            },
+            C : function (s) {
+                // relative right
+                pos.x += parseInt(s, 10) || 1;
+                xcheck() || emit();
+            },
+            D : function (s) {
+                // relative left
+                pos.x -= parseInt(s, 10) || 1;
+                xcheck() || emit();
+            },
+            E : function (s) {
+                // begining of the line N lines down
+                pos.x = 1;
+                pos.y += parseInt(s, 10) || 1;
+                emit();
+            },
+            F : function (s) {
+                // begining of the line N lines up
+                pos.x = 1;
+                pos.y -= parseInt(s, 10) || 1;
+                emit();
+            },
+            G : function (s) {
+                // absolute column
+                var s = buf.slice(0, buf.length - 1).toString();
+                pos.x = parseInt(s, 10) || 1;
+                xcheck() || emit();
+            },
+        }[last];
+        
+        if (handler) {
             var s = buf.slice(0, buf.length - 1).toString();
-            pos.y -= parseInt(s, 10) || 1;
-            emit();
-        }
-        else if (last === 'B') {
-            var s = buf.slice(0, buf.length - 1).toString();
-            pos.y += parseInt(s, 10) || 1;
-            emit();
-        }
-        else if (last === 'C') {
-            var s = buf.slice(0, buf.length - 1).toString();
-            pos.x += parseInt(s, 10) || 1;
-            xcheck() || emit();
-        }
-        else if (last === 'D') {
-            var s = buf.slice(0, buf.length - 1).toString();
-            pos.x -= parseInt(s, 10) || 1;
-            xcheck() || emit();
+            handler(s);
         }
     }
     
