@@ -103,7 +103,7 @@ module.exports = function (opts) {
     function xcheck () {
         if (width && pos.x >= width) {
             pos.y += Math.floor(pos.x / width);
-            pos.x %= width;
+            pos.x = (pos.x % width) + 1;
         }
     }
     

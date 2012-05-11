@@ -14,7 +14,7 @@ test('color width', function (t) {
         .seq(function () { setTimeout(this.ok, 50) })
         .seq(function () {
             t.equal(pos.x, 5);
-            t.equal(pos.y, 0);
+            t.equal(pos.y, 1);
             charm
                 .foreground('red')
                 .write(new Buffer('fghij'))
@@ -24,7 +24,7 @@ test('color width', function (t) {
         .seq(function () { pos.once('pos', this.ok) })
         .seq(function () { setTimeout(this.ok, 50) })
         .seq(function () {
-            t.equal(pos.x, 0);
+            t.equal(pos.x, 1);
             t.equal(pos.y, 1);
             charm
                 .background('yellow')
@@ -35,7 +35,7 @@ test('color width', function (t) {
         .seq(function () { pos.once('pos', this.ok) })
         .seq(function () { setTimeout(this.ok, 50) })
         .seq(function () {
-            t.equal(pos.x, 4);
+            t.equal(pos.x, 5);
             t.equal(pos.y, 1);
             charm.end();
             t.end();
