@@ -14,8 +14,8 @@ module.exports = function (opts) {
     pos.writable = true;
     pos.readable = true;
     
-    pos.x = opts.x || 0;
-    pos.y = opts.y || 0;
+    pos.x = opts.x || 1;
+    pos.y = opts.y || 1;
     
     var bin = binary();
     pos.write = bin.write.bind(bin);
@@ -103,7 +103,7 @@ module.exports = function (opts) {
     function xcheck () {
         if (width && pos.x >= width) {
             pos.y += Math.floor(pos.x / width);
-            pos.x = (pos.x % width) + 1;
+            pos.x = pos.x % width;
         }
     }
     
@@ -123,12 +123,12 @@ module.exports = function (opts) {
             var b = new Buffer([vars.c]);
             if (c === '\n'.charCodeAt(0)) {
                 pos.y ++;
-                pos.x = 0;
+                pos.x = 1;
                 emit(b);
                 parse.call(this);
             }
             else if (c === '\r'.charCodeAt(0)) {
-                pos.x = 0;
+                pos.x = 1;
                 emit(b);
                 parse.call(this);
             }
@@ -163,14 +163,14 @@ module.exports = function (opts) {
                         }
                         else if (x === 'D') {
                             // scroll down
-                            pos.x = 0;
+                            pos.x = 1;
                             pos.y ++;
                             emit(b);
                             parse.call(this);
                         }
                         else if (x === 'M') {
                             // scroll up
-                            pos.x = 0;
+                            pos.x = 1;
                             pos.y --;
                             emit(b);
                             parse.call(this);
