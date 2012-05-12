@@ -1,6 +1,6 @@
 {
     "name" : "cursory",
-    "version" : "0.1.0",
+    "version" : "0.2.0",
     "description" : "compute the relative cursor position on a terminal stream",
     "main" : "index.js",
     "directories" : {
@@ -9,7 +9,7 @@
         "test" : "test"
     },
     "dependencies" : {
-        "binary" : "~0.2.6"
+        "binary" : "~0.3.0"
     },
     "devDependencies" : {
         "tap" : "~0.2.5",
