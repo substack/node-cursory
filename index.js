@@ -101,16 +101,16 @@ module.exports = function (opts) {
     }
     
     function xcheck () {
-        if (width && pos.x >= width) {
+        if (width && pos.x > width) {
             pos.y += Math.floor(pos.x / width);
-            pos.x = pos.x % width;
+            pos.x = Math.max(pos.x % width, 1);
         }
     }
     
     var emit = (function () {
         var nt = false;
         return function (buf) {
-            pos.emit('data', buf);
+            pos.emit('data', buf, pos.x, pos.y);
             pos.emit('pos', pos.x, pos.y);
         };
     })();
@@ -158,6 +158,7 @@ module.exports = function (opts) {
                             var p = stack.pop();
                             pos.x = p.x;
                             pos.y = p.y;
+                            xcheck();
                             emit(b);
                             parse.call(this);
                         }
@@ -177,7 +178,8 @@ module.exports = function (opts) {
                         }
                         else {
                             pos.x += 2;
-                            xcheck() || emit(b);
+                            xcheck();
+                            emit(b);
                             parse.call(this);
                         }
                     })
@@ -185,7 +187,8 @@ module.exports = function (opts) {
             }
             else {
                 pos.x ++;
-                xcheck() || emit(b);
+                emit(b);
+                xcheck();
                 parse.call(this);
             }
         })

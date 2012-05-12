@@ -37,6 +37,8 @@ test('color width', function (t) {
         .seq(function () { pos.once('pos', this.ok) })
         .seq(function () { setTimeout(this.ok, 50) })
         .seq(function () {
+            // abcdefghij
+            // klmn*
             t.equal(pos.x, 5);
             t.equal(pos.y, 2);
             charm.end();
